@@ -8,5 +8,9 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), flowbiteReact()],
    optimizeDeps: {
     disabled: true
+  },
+  server: {
+    host: '0.0.0.0',
+    port: 3001
   }
 })
