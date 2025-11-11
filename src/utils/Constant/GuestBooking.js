@@ -12,7 +12,8 @@ export const BookingTilesArr = [
     totalNumber: 5023,
     borderColor: "border-blue-200",
     bgColor: "bg-blue-50",
-    fontTitleColor: "text-[#1447E6]"
+    fontTitleColor: "text-[#1447E6]",
+    access: "avgBookingValue"
   },
   {
     title: "Cancellation Rate",
@@ -20,7 +21,8 @@ export const BookingTilesArr = [
     totalNumber: 5023,
     borderColor: "border-[#E9D4FF]",
     bgColor: "bg-[#F3E8FF]",
-    fontTitleColor: "text-[#8200DB]"
+    fontTitleColor: "text-[#8200DB]",
+    access: "cancellationRate"
   },
   {
     title: "Monthly Frequency",
@@ -28,7 +30,8 @@ export const BookingTilesArr = [
     totalNumber: 5023,
     borderColor: "border-[#B9F8CF]",
     bgColor: "bg-[#DCFCE7]",
-    fontTitleColor: "text-[#008236]"
+    fontTitleColor: "text-[#008236]",
+    access: "monthlyFrequency"
   },
   {
     title: "Total Bookings",
@@ -36,7 +39,8 @@ export const BookingTilesArr = [
     totalNumber: 5023,
     borderColor: "border-[#FFD6A7]",
     bgColor: "bg-[#FFEDD4]",
-    fontTitleColor: "text-[#CA3500]"
+    fontTitleColor: "text-[#CA3500]",
+    access: "totalBookings"
   }
 ]
 
@@ -47,7 +51,8 @@ export const BookingTimelineArr = [
     totalNumber: "3",
     borderColor: "border-[#DBEAFE]",
     bgColor: "bg-blue-100",
-    fontTitleColor: "text-[#1447E6]"
+    fontTitleColor: "text-[#1447E6]",
+    access: "upcoming"
   },
   {
     title: "Ongoing",
@@ -55,7 +60,8 @@ export const BookingTimelineArr = [
     totalNumber: "3",
     borderColor: "border-[#FEF9C2]",
     bgColor: "bg-[#FEFCE8]",
-    fontTitleColor: "text-[#A65F00]"
+    fontTitleColor: "text-[#A65F00]",
+    access: "ongoing"
   },
   {
     title: "Compeleted",
@@ -63,7 +69,8 @@ export const BookingTimelineArr = [
     totalNumber: "3",
     borderColor: "border-[#DCFCE7]",
     bgColor: "bg-[#F0FDF4]",
-    fontTitleColor: "text-[#008236]"
+    fontTitleColor: "text-[#008236]",
+    access: "completed"
   },
   {
     title: "Cancelled",
@@ -71,6 +78,7 @@ export const BookingTimelineArr = [
     totalNumber: "3",
     borderColor: "border-[#FFE2E2]",
     bgColor: "bg-[#FEF2F2]",
-    fontTitleColor: "text-[#C10007]"
+    fontTitleColor: "text-[#C10007]",
+    access: "cancelled"
   }
 ]

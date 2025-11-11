@@ -1,4 +1,8 @@
+import { useQuery } from '@tanstack/react-query';
 import { HiOutlineOfficeBuilding } from 'react-icons/hi';
+import { useSelector } from 'react-redux';
+import Loader from '../../../components/BasicComponent/Loader';
+import { fetchGuestBookingsList } from '../../../services/guestUser';
 
 const RecentBooking = ({
   label,
@@ -47,6 +51,15 @@ const RecentBooking = ({
 }
 
 const RecentBookings = () => {
+  const [recentBooking, setRecentBooking] = useState([])
+  const {guestId} = useSelector((state) => state.guest)
+  const { data, isFetching, error } = useQuery({
+    queryKey: ["guest-bookings", guestId],
+    queryFn: () => fetchGuestBookingsList(guestId)
+  })
+
+  if(isFetching) return <Loader />
+
   const recentBooking = [
     {
       label: "The Grand Oberoi",

@@ -7,9 +7,8 @@ import DrawerTitleComponent from "../components/Drawer/DrawerTitleComponent";
 import TabComponent from "../components/BasicComponent/TabComponent";
 import { TabsList } from "./GuestsTabs/TabsList";
 
-const GuestInformation = ({isOpen, setIsOpen }) => {
-    const handleClose = () => setIsOpen(false);
-  
+const GuestInformation = ({isOpen, setIsOpen, selectedGuest }) => {
+  const handleClose = () => setIsOpen(false);
   return (
     <>
       <Drawer
@@ -19,7 +18,7 @@ const GuestInformation = ({isOpen, setIsOpen }) => {
         className="w-7/12 bg-white!"
       >
         <DrawerTitleComponent
-          title={"Guest Profile - Rahul Sharma"}
+          title={`Guest Profile - ${selectedGuest?.guest || 'N/A'}`}
           subTitle={"Complete guest information and activity"}
         />
         <TabComponent tabSection={TabsList} />

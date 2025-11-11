@@ -4,6 +4,7 @@ import { FiFileText } from 'react-icons/fi';
 import { FaRegChartBar } from 'react-icons/fa';
 import { MdOutlineChatBubble } from 'react-icons/md';
 import { BsCalendar4 } from 'react-icons/bs';
+import { RiUserSettingsLine } from "react-icons/ri";
 
 export const NavBarConfig = [{
   title: "Dashboard",
@@ -49,11 +50,16 @@ export const NavBarConfig = [{
 {
   title: "System Config",
   icon: LuSettings,
-  url: ""
+  url: "/system-configuration"
 },
 {
   title: "Customer Support",
   icon: MdOutlineChatBubble,
-  url: ""
+  url: "/customer-support"
+},
+{
+  title: "Staff Management",
+  icon: RiUserSettingsLine,
+  url: "/staff-management"
 }
 ]

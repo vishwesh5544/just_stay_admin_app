@@ -1,7 +1,7 @@
 import BookingCardComponent from "../../../components/Cards/BookingCardComponent"
 import { BookingTimelineArr } from "../../../utils/Constant/GuestBooking"
 
-const BookingTimeline = () => {
+const BookingTimeline = ({timelineList}) => {
   return(
     <>
       <p className="font-poppins font-medium text-[14px] leading-5 tracking-[0px] text-[#101828]">Booking Timeline</p>
@@ -9,10 +9,10 @@ const BookingTimeline = () => {
         {BookingTimelineArr.map((item) => {
           const Icon = item.symbol
           return <BookingCardComponent
-          title={"Upcoming"}
+          title={item.title}
           isIcon={true}
           symbolIcon={<Icon className={`${item.fontTitleColor} mb-1`} />}
-          totalNumber={"2"}
+          totalNumber={timelineList?.[item.access]}
           borderColor={item.borderColor}
           bgColor={item.bgColor}
           fontTitleColor={item.fontTitleColor}

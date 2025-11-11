@@ -1,9 +1,13 @@
 import GuestInformation from "./GuestsInformation"
 
-const GuestManagementDrawer = ({isOpen, setIsOpen}) => {
+const GuestManagementDrawer = ({isOpen, setIsOpen, selectedGuest}) => {
   return(
     <>
-      <GuestInformation isOpen={isOpen} setIsOpen={setIsOpen}/>
+      <GuestInformation 
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        selectedGuest={selectedGuest}
+      />
     </>
   )
 }

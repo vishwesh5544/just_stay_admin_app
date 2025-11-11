@@ -18,10 +18,6 @@ export const TabsList = [[{
   content: <GuestsBookings />
 },
 {
-  label: "Wallet",
-  content: "Hello"
-},
-{
   label: "Referrals",
   content: <Referrals />
 },

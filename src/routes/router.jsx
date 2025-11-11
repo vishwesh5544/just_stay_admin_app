@@ -8,6 +8,10 @@ import BookingManagementLayout from "../layouts/BookingManagementLayout";
 import ContentManagementLayout from "../layouts/ContentManagementLayout";
 import FinacialLayout from "../layouts/FinacialLayout";
 import AnalyticsLayout from "../layouts/AnalyticsLayout";
+import SystemConfigLayout from "../layouts/SystemConfigLayout";
+import CustomerSupportLayout from "../layouts/CustomerSupportLayout";
+import StaffManagementLayout from "../layouts/StaffManagementLayout";
+import DashboardLayout from "../layouts/DashboardLayout";
 
 const router = createBrowserRouter([
   {
@@ -16,7 +20,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true, // default route for "/"
-        element: <Home />,
+        element: <DashboardLayout />,
       },
       {
         path: "/guests-management",
@@ -45,6 +49,18 @@ const router = createBrowserRouter([
       {
         path: "/analytics-report",
         element: <AnalyticsLayout />
+      },
+      {
+        path: "/system-configuration",
+        element: <SystemConfigLayout />
+      },
+      {
+        path: "/customer-support",
+        element: <CustomerSupportLayout />
+      },
+      {
+        path: "/staff-management",
+        element: <StaffManagementLayout />
       }
     ],
   },

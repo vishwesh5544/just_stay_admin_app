@@ -5,9 +5,14 @@ import TableComponent from "../components/BasicComponent/TableComponent";
 import CardComponent from "../components/Cards/CardComponent"
 import GuestFilters from "../components/GuestFilters/GuestFilters"
 import PageHeading from "../components/PageHeading/PageHeading"
-import { cardConstant, data } from "../utils/Constant/GuestManagementConstant"
+import { cardConstant } from "../utils/Constant/GuestManagementConstant"
 import GuestManagementDrawer from './GuestsManagementDrawer';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useQueries, useQuery } from '@tanstack/react-query';
+import { handleGuestUserList, fetchStats } from '../services/guestUser';
+import Loader from '../components/BasicComponent/Loader';
+import { useDispatch } from 'react-redux';
+import { setGuestId } from '../redux/slices/guestSlice';
 
 const columns = [
   { header: "Guest", accessor: "guest", meta: "user_id" },
@@ -58,7 +63,45 @@ const columns = [
 ];
 
 const GuestsManagement = () => {
+  const [guestList, setGuestList] = useState([])
+  const [selectedGuest, setSelectedGuest] = useState(null)
   const [isOpen, setIsOpen] = useState(false);
+  const dispatch = useDispatch()
+  const [guestListFetch, guestStats] = useQueries({
+    queries:[
+      {
+        queryKey: ["guestListFetch"],
+        queryFn: handleGuestUserList
+      },
+      {
+        queryKey: ["guestStats"],
+        queryFn: fetchStats
+      }
+    ]
+  })
+
+  useEffect(()=> {
+    if(guestListFetch?.data?.data) {
+      const data = guestListFetch?.data?.data?.map((item) => ({
+        guest: item?.firstName + " " + item?.lastName,
+        user_id: item?._id,
+        contact: item?.email,
+        contact_no: item?.phone,
+        location: item?.city,
+        state: item?.state,
+        status: item?.status,
+        kyc: item?.kyc,
+        wallet: item?.wallet,
+        earned: item?.earned,
+        bookings: item?.bookings,
+        spent: item?.spent
+      }))
+      setGuestList(data)
+    }
+
+  }, [guestListFetch?.isLoading])
+
+  if( guestListFetch?.isLoading || guestStats.isLoading ) return <Loader />
   return(
     <>
       <div>
@@ -73,7 +116,7 @@ const GuestsManagement = () => {
             <CardComponent
               key={item.title}
               title={item.title}
-              totalNumber={item.totalNumber}
+              totalNumber={guestStats?.data?.data[item.access]}
               borderColor={item.borderColor}
               bgColor={item.bgColor}
               fontTitleColor={item.fontTitleColor}
@@ -83,15 +126,22 @@ const GuestsManagement = () => {
       </div>
       <div className="my-6 border border-gray-200 rounded-2xl">
         <div className="p-6">
-          <GuestFilters />
+          <GuestFilters
+            updateGuestList={setGuestList}
+          />
         </div>
       </div>
       <div>
-        <TableComponent columns={columns} data={data} onRowClick={() => setIsOpen(true)} />
+        <TableComponent columns={columns} data={guestList} onRowClick={(guest) => 
+          {
+            dispatch(setGuestId(guest?.user_id))
+            setSelectedGuest(guest);
+            setIsOpen(true);
+          }} />
         <GuestManagementDrawer
           isOpen={isOpen}
           setIsOpen={setIsOpen}
-          
+          selectedGuest={selectedGuest}
         />
       </div>
     </>
