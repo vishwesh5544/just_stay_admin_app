@@ -12,11 +12,26 @@ import SystemConfigLayout from "../layouts/SystemConfigLayout";
 import CustomerSupportLayout from "../layouts/CustomerSupportLayout";
 import StaffManagementLayout from "../layouts/StaffManagementLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
+import Login from "../pages/Login";
+import ProtectedRoute from "../components/ProtectedRoute";
+import PublicRoute from "../components/PublicRoute";
 
 const router = createBrowserRouter([
   {
+    path: "/login",
+    element: (
+      <PublicRoute>
+        <Login />
+      </PublicRoute>
+    ),
+  },
+  {
     path: "/",
-    element: <MainLayout />,
+    element: (
+      <ProtectedRoute>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true, // default route for "/"

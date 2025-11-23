@@ -60,30 +60,31 @@ const RecentBookings = () => {
 
   if(isFetching) return <Loader />
 
-  const recentBooking = [
-    {
-      label: "The Grand Oberoi",
-      value: "12,500",
-      status: "Upcoming",
-      date: "2025-01-15",
-      roomNumber: "Room 502",
-      symbol: <HiOutlineOfficeBuilding className="text-purple-600 text-xl" />,
-      bgColor: "bg-[#F3E8FF]",
-      bgStatus: "bg-[#DBEAFE]",
-      statusTextColor: "text-[#193CB8]"
-    },
-    {
-      label: "Taj Palace Hotel",
-      value: "3,500",
-      status: "Ongoing",
-      date: "2025-01-10",
-      roomNumber: "Room 505",
-      symbol: <HiOutlineOfficeBuilding className="text-[#009689] text-xl" />,
-      bgColor: "bg-[#CBFBF1]",
-      bgStatus: "bg-[#FEF9C2]",
-      statusTextColor: "text-[#894B00]"
-    }
-  ]
+  // const recentBooking = [
+  //   {
+  //     label: "The Grand Oberoi",
+  //     value: "12,500",
+  //     status: "Upcoming",
+  //     date: "2025-01-15",
+  //     roomNumber: "Room 502",
+  //     symbol: <HiOutlineOfficeBuilding className="text-purple-600 text-xl" />,
+  //     bgColor: "bg-[#F3E8FF]",
+  //     bgStatus: "bg-[#DBEAFE]",
+  //     statusTextColor: "text-[#193CB8]"
+  //   },
+  //   {
+  //     label: "Taj Palace Hotel",
+  //     value: "3,500",
+  //     status: "Ongoing",
+  //     date: "2025-01-10",
+  //     roomNumber: "Room 505",
+  //     symbol: <HiOutlineOfficeBuilding className="text-[#009689] text-xl" />,
+  //     bgColor: "bg-[#CBFBF1]",
+  //     bgStatus: "bg-[#FEF9C2]",
+  //     statusTextColor: "text-[#894B00]"
+  //   }
+  // ]
+  
   return(
     <>
       <p className="font-medium text-[14px] leading-5, tracking-[0px] text-[#101828] mb-8">Recent Bookings</p>
