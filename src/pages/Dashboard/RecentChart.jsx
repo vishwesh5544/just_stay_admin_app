@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -48,22 +48,17 @@ const QuickAction = ({ icon: Icon, title, subtitle, bg, color }) => (
   </button>
 );
 
-const RecentChart = () => {
-  const [range, setRange] = useState("Daily");
+const RecentChart = ({ revenueTrends, quickActions }) => {
   const canvasRef = useRef(null);
 
-  const labelsMap = {
-    Daily: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    Weekly: ["W1", "W2", "W3", "W4", "W5", "W6", "W7"],
-    Monthly: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
+  // Format date to show day name (e.g., "Mon", "Tue")
+  const formatDateLabel = (dateString) => {
+    const date = new Date(dateString);
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    return days[date.getDay()];
   };
 
-  const dataMap = {
-    Daily: [45_000, 51_000, 48_000, 62_000, 78_000, 90_000, 82_000],
-    Weekly: [2.8e5, 3.1e5, 2.9e5, 3.7e5, 4.2e5, 4.5e5, 4.1e5],
-    Monthly: [1.8e6, 2.1e6, 1.9e6, 2.5e6, 2.9e6, 3.2e6, 3.0e6],
-  };
-
+  // Get chart data from API
   const chartData = useMemo(() => {
     const ctx = canvasRef.current?.ctx || canvasRef.current?._context;
     let gradient;
@@ -74,11 +69,16 @@ const RecentChart = () => {
       gradient.addColorStop(0, "rgba(16, 185, 129, 0.35)");
       gradient.addColorStop(1, "rgba(16, 185, 129, 0.02)");
     }
+
+    const series = revenueTrends?.series || [];
+    const labels = series.map((item) => formatDateLabel(item.date));
+    const data = series.map((item) => item.amount);
+
     return {
-      labels: labelsMap[range],
+      labels: labels,
       datasets: [
         {
-          data: dataMap[range],
+          data: data,
           borderColor: "#10B981",
           backgroundColor: gradient || "rgba(16, 185, 129, 0.15)",
           fill: true,
@@ -88,7 +88,7 @@ const RecentChart = () => {
         },
       ],
     };
-  }, [range]);
+  }, [revenueTrends]);
 
   const options = useMemo(() => ({
     responsive: true,
@@ -118,12 +118,16 @@ const RecentChart = () => {
   }), []);
 
   const summary = useMemo(() => {
-    const arr = dataMap[range];
-    const avg = Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
-    const peak = Math.max(...arr);
-    const total = arr.reduce((a, b) => a + b, 0);
-    return { avg, peak, total };
-  }, [range]);
+    if (!revenueTrends) {
+      return { avg: 0, peak: 0, total: 0, peakDate: null };
+    }
+    return {
+      avg: revenueTrends.averageDaily || 0,
+      peak: revenueTrends.peakDay?.amount || 0,
+      total: revenueTrends.total7Days || 0,
+      peakDate: revenueTrends.peakDay?.date || null,
+    };
+  }, [revenueTrends]);
 
   return (
     <section className="mt-6">
@@ -134,7 +138,8 @@ const RecentChart = () => {
               <h3 className="text-[18px] font-semibold text-[#101828]">Revenue Trends</h3>
               <p className="text-[13px] text-[#98A2B3]">Track your earnings over time</p>
             </div>
-            <Toggle value={range} onChange={setRange} />
+            {/* Toggle disabled for now as API only provides daily data */}
+            {/* <Toggle value={range} onChange={setRange} /> */}
           </div>
           <div className="h-[280px]">
             <Line ref={canvasRef} data={chartData} options={options} />
@@ -145,11 +150,11 @@ const RecentChart = () => {
               <p className="text-[16px] font-semibold text-[#101828]">₹{summary.avg.toLocaleString("en-IN")}</p>
             </div>
             <div>
-              <p className="text-[12px] text-[#98A2B3]">Peak {range === "Daily" ? "Day" : range === "Weekly" ? "Week" : "Month"}</p>
+              <p className="text-[12px] text-[#98A2B3]">Peak Day</p>
               <p className="text-[16px] font-semibold text-[#101828]">₹{summary.peak.toLocaleString("en-IN")}</p>
             </div>
             <div>
-              <p className="text-[12px] text-[#98A2B3]">Total ({range})</p>
+              <p className="text-[12px] text-[#98A2B3]">Total (7 Days)</p>
               <p className="text-[16px] font-semibold text-[#101828]">₹{summary.total.toLocaleString("en-IN")}</p>
             </div>
           </div>
@@ -161,10 +166,34 @@ const RecentChart = () => {
             <p className="text-[13px] text-[#98A2B3]">High-priority tasks</p>
           </div>
           <div className="space-y-3">
-            <QuickAction icon={LuUserCheck} title="Pending Verifications" subtitle="42 items pending" bg="bg-[#FFF4EC]" color="text-[#F2994A]" />
-            <QuickAction icon={LuWallet} title="Withdrawal Requests" subtitle="8 requests waiting" bg="bg-[#EAF2FF]" color="text-[#155DFC]" />
-            <QuickAction icon={LuCircleAlert} title="Failed Bookings" subtitle="3 needs review" bg="bg-[#FFEFEF]" color="text-[#E11D48]" />
-            <QuickAction icon={LuBuilding} title="New Hotel Listings" subtitle="Review 5 new hotels" bg="bg-[#E9FBF3]" color="text-[#00A63E]" />
+            <QuickAction 
+              icon={LuUserCheck} 
+              title="Pending Verifications" 
+              subtitle={`${quickActions?.pendingVerifications || 0} items pending`} 
+              bg="bg-[#FFF4EC]" 
+              color="text-[#F2994A]" 
+            />
+            <QuickAction 
+              icon={LuWallet} 
+              title="Withdrawal Requests" 
+              subtitle={`${quickActions?.withdrawalRequests || 0} requests waiting`} 
+              bg="bg-[#EAF2FF]" 
+              color="text-[#155DFC]" 
+            />
+            <QuickAction 
+              icon={LuCircleAlert} 
+              title="Failed Bookings" 
+              subtitle={`${quickActions?.failedBookings || 0} needs review`} 
+              bg="bg-[#FFEFEF]" 
+              color="text-[#E11D48]" 
+            />
+            <QuickAction 
+              icon={LuBuilding} 
+              title="New Hotel Listings" 
+              subtitle={`Review ${quickActions?.newHotelListings || 0} new hotels`} 
+              bg="bg-[#E9FBF3]" 
+              color="text-[#00A63E]" 
+            />
           </div>
         </div>
       </div>

@@ -27,11 +27,11 @@ const StatGradientCard = ({
   );
 };
 
-const BookingActivityCard = () => {
+const BookingActivityCard = ({ kpis }) => {
   const cards = [
     {
       title: "Hourly Bookings",
-      value: "324",
+      value: (kpis?.hourlyBookings || 0).toLocaleString("en-IN"),
       footer: "+15% this week",
       icon: LuBuilding,
       arrow: LuTrendingUp,
@@ -40,8 +40,8 @@ const BookingActivityCard = () => {
       footerColor: "text-[#155DFC]",
     },
     {
-      title: "goSafe Hotels",
-      value: "156",
+      title: "goLive Hotels",
+      value: (kpis?.goLiveHotels || 0).toLocaleString("en-IN"),
       footer: "+8 new certifications",
       icon: LuShieldCheck,
       arrow: LuTrendingUp,
@@ -51,7 +51,7 @@ const BookingActivityCard = () => {
     },
     {
       title: "Avg Commission",
-      value: "12.5%",
+      value: `${kpis?.avgCommission || 0}%`,
       footer: "Optimized -2%",
       icon: LuDollarSign,
       arrow: LuTrendingDown,

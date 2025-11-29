@@ -32,11 +32,24 @@ const StatCard = ({ title, value, icon: Icon, trendText, color, isAlert, symbol 
   );
 };
 
-const DashbordTill = () => {
+const DashbordTill = ({ headerData }) => {
+  const formatNumber = (num) => {
+    if (num >= 100000) {
+      return `₹${(num / 100000).toFixed(2)}L`;
+    } else if (num >= 1000) {
+      return `₹${(num / 1000).toFixed(1)}K`;
+    }
+    return `₹${num?.toLocaleString("en-IN") || 0}`;
+  };
+
+  const formatCount = (num) => {
+    return num?.toLocaleString("en-IN") || 0;
+  };
+
   const stats = [
     {
       title: "Total Bookings",
-      value: "1,234",
+      value: formatCount(headerData?.totalBookings),
       icon: LuBuilding,
       trendText: "+12.5% from last week",
       color: "bg-[#CBFBF1]",
@@ -44,7 +57,7 @@ const DashbordTill = () => {
     },
     {
       title: "Total Revenue",
-      value: "₹4.51L",
+      value: formatNumber(headerData?.totalRevenue),
       icon: LuDollarSign,
       trendText: "+18.2% from last week",
       color: "bg-[#DCFCE7]",
@@ -52,7 +65,7 @@ const DashbordTill = () => {
     },
     {
       title: "Active Users",
-      value: "8,426",
+      value: formatCount(headerData?.activeUsers),
       icon: LuUsers,
       trendText: "+8.3% from last week",
       color: "bg-[#DBEAFE]",
@@ -60,12 +73,12 @@ const DashbordTill = () => {
     },
     {
       title: "Pending Verifications",
-      value: "42",
+      value: formatCount(headerData?.pendingVerifications),
       icon: LuUserCheck,
-      trendText: "Requires attention",
+      trendText: headerData?.pendingVerifications > 0 ? "Requires attention" : "All clear",
       color: "bg-[#FFEDD4]",
       symbol: "text-[#F54900]",
-      isAlert: true,
+      isAlert: headerData?.pendingVerifications > 0,
     },
   ];
 
