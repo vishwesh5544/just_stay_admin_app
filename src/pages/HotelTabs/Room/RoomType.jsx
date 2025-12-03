@@ -3,7 +3,13 @@ import { TbBed, TbChartBar } from "react-icons/tb";
 import CardComponent from "../../../components/Cards/CardComponent";
 import Container from '../../../components/BasicComponent/Container';
 import RoomTypeCard from "./RoomTypeCard";
+import { useProperty } from "../../HotelManagementDrawer";
+
 const RoomType = () => {
+  const { property, propertyRooms } = useProperty() || {};
+  
+  // Calculate total rooms from propertyRooms
+  const totalRooms = propertyRooms?.reduce((sum, room) => sum + (room.numberOfRooms || 0), 0) || property?.roomCount || 0;
   return(
     <>
       <div className="p-4">
@@ -28,7 +34,7 @@ const RoomType = () => {
           <div className="grid grid-cols-2 gap-4 my-4">
             <CardComponent
             title="Total Rooms"
-            totalNumber={45}
+            totalNumber={totalRooms}
             isIcon={true}
             symbolIcon={<TbBed className="text-[#155DFC]" />}
             borderColor="border-[#BEDBFF]"
@@ -37,7 +43,7 @@ const RoomType = () => {
             />
             <CardComponent
             title="Occupancy Rate"
-            totalNumber={"82%"}
+            totalNumber={"N/A"}
             isIcon={true}
             symbolIcon={<TbChartBar className="text-[#008236]" />}
             borderColor="border-[#B9F8CF]"
@@ -48,32 +54,33 @@ const RoomType = () => {
 
           <div>
             <div>
-              {[
-                {
-                  name: "Deluxe Room",
-                  rooms: 15,
-                  available: 8,
-                  size: "280 sq ft",
-                  beds: "1 King",
-                  occupancy: "2 Adults",
-                  dailyRate: "₹3500",
-                  hourlyBooking: { available: true, price: 1200, duration: "3hrs" },
-                },
-                {
-                  name: "Super Deluxe",
-                  rooms: 10,
-                  available: 4,
-                  size: "320 sq ft",
-                  beds: "1 King + 1 Single",
-                  occupancy: "3 Adults",
-                  dailyRate: "₹4800",
-                  hourlyBooking: { available: false },
-                },
-              ].map((r, idx) => (
-                <div key={idx} className="mb-4">
-                  <RoomTypeCard {...r} onEdit={() => {}} />
+              {propertyRooms && propertyRooms.length > 0 ? (
+                propertyRooms.map((room, idx) => {
+                  const roomData = {
+                    name: room.type || "Standard Room",
+                    rooms: room.numberOfRooms || 0,
+                    available: room.numberOfRooms || 0, // Not available in API
+                    size: `${room.area || 0} sq ft`,
+                    beds: `${room.bed || 0} Bed${room.bed !== 1 ? 's' : ''}`,
+                    occupancy: `${room.bed || 0} Adults`, // Approximate
+                    dailyRate: `₹${room.price?.oneNight || 0}`,
+                    hourlyBooking: { 
+                      available: room.price?.threeHours ? true : false, 
+                      price: room.price?.threeHours || 0, 
+                      duration: "3hrs" 
+                    },
+                  };
+                  return (
+                    <div key={room._id || idx} className="mb-4">
+                      <RoomTypeCard {...roomData} onEdit={() => {}} />
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="p-5 text-gray-500 text-center">
+                  No rooms available for this property
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>

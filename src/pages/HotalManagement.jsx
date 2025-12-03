@@ -7,13 +7,97 @@ import { FaRegEdit } from "react-icons/fa"
 import { BsThreeDots } from "react-icons/bs"
 import HotelManagementDrawer from "./HotelManagementDrawer"
 import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { fetchProperties, fetchPropertiesStats } from "../services/properties"
+import Loader from "../components/BasicComponent/Loader"
 
 const HotalManagement = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedPropertyId, setSelectedPropertyId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+
+  // Fetch properties from API
+  const { data: propertiesData, isLoading, error } = useQuery({
+    queryKey: ["properties", page, limit],
+    queryFn: () => fetchProperties(page, limit),
+  });
+
+  // Fetch properties stats from API
+  const { data: statsData, isLoading: statsLoading } = useQuery({
+    queryKey: ["propertiesStats"],
+    queryFn: fetchPropertiesStats,
+  });
+
+  // Transform API response to match table structure
+  const transformPropertiesData = (properties) => {
+    if (!properties || !Array.isArray(properties)) return [];
+    
+    return properties.map((property) => {
+      // Determine KYC status based on documents
+      const hasVerifiedDocuments = property.documents?.some(
+        (doc) => doc.status === "Approved" || doc.status === "Verified"
+      );
+      const kycStatus = hasVerifiedDocuments ? "Verified" : "Unverified";
+
+      // Build features array from badges
+      const features = [];
+      if (property.badges?.hourlyBooking) features.push("Hourly");
+      if (property.badges?.goSafeBadge) features.push("goSafe");
+
+      // Format hotel meta info
+      const hotelMeta = `${property.propertyType || "Property"} • ${property.rating > 0 ? property.rating + "★" : "N/A"} • ID: ${property._id?.slice(-6) || "N/A"}`;
+
+      return {
+        hotel: property.basicPropertyDetails?.name || "N/A",
+        hotelMeta: hotelMeta,
+        city: property.location?.city || "N/A",
+        state: property.location?.state || "N/A",
+        owner: property.userId?.phone || property.contactDetails?.mobile || "N/A",
+        phone: property.contactDetails?.mobile || property.userId?.phone || "N/A",
+        rooms: property.roomCount || 0,
+        occupancy: 0, // Not available in API response
+        status: property.status || property.listingStatus || "N/A",
+        kyc: kycStatus,
+        rating: property.rating || 0,
+        reviews: property.totalRatings || 0,
+        features: features,
+        bookings: 0, // Not available in API response
+        revenue: "N/A", // Not available in API response
+        _id: property._id, // Store original ID for reference
+      };
+    });
+  };
+
+  // Helper function to format numbers with commas
+  const formatNumber = (num) => {
+    if (num === null || num === undefined) return "0";
+    return num.toLocaleString('en-US');
+  };
+
+  // Get stats from API response
+  const stats = statsData?.success ? statsData.data : null;
+  
+  // Find counts from propertiesByStatus array
+  const getStatusCount = (statusName) => {
+    if (!stats?.propertiesByStatus) return 0;
+    const statusItem = stats.propertiesByStatus.find(item => item._id === statusName);
+    return statusItem?.count || 0;
+  };
+
+  // Calculate Active count (sum of all statuses except "Under Review" and "Rejected")
+  const getActiveCount = () => {
+    if (!stats?.propertiesByStatus) return 0;
+    const total = stats.totalProperties || 0;
+    const pending = getStatusCount("Under Review");
+    const rejected = getStatusCount("Rejected");
+    return Math.max(0, total - pending - rejected);
+  };
+
   const hotelCards = [
     {
       title: "Total Hotels",
-      totalNumber: "1,234",
+      totalNumber: formatNumber(stats?.totalProperties || 0),
       borderColor: "border-[#E5E7EB]",
       bgColor: "bg-white",
       fontTitleColor: "text-[#4A5565]",
@@ -22,7 +106,7 @@ const HotalManagement = () => {
     },
     {
       title: "Active",
-      totalNumber: "1,156",
+      totalNumber: formatNumber(getActiveCount()),
       borderColor: "border-[#B9F8CF]",
       bgColor: "bg-gradient-to-bl from-[#F0FDF4] to-[#DCFCE7]",
       fontTitleColor: "text-[#00A63E]",
@@ -31,7 +115,7 @@ const HotalManagement = () => {
     },
     {
       title: "Pending",
-      totalNumber: "34",
+      totalNumber: formatNumber(getStatusCount("Under Review")),
       borderColor: "border-[#FFF085]",
       bgColor: "bg-gradient-to-bl from-[#FEFCE8] to-[#FEF9C2]",
       fontTitleColor: "text-[#A65F00]",
@@ -40,7 +124,7 @@ const HotalManagement = () => {
     },
     {
       title: "Hourly Enabled",
-      totalNumber: "456",
+      totalNumber: "N/A", // Not available in stats API
       borderColor: "border-[#BEDBFF]",
       bgColor: "bg-gradient-to-bl from-[#EFF6FF] to-[#DBEAFE]",
       fontTitleColor: "text-[#1447E6]",
@@ -49,7 +133,7 @@ const HotalManagement = () => {
     },
     {
       title: "goSafe Certified",
-      totalNumber: "678",
+      totalNumber: "N/A", // Not available in stats API
       borderColor: "border-[#B9F8CF]",
       bgColor: "bg-gradient-to-bl from-[#F0FDFA] to-[#CBFBF1]",
       fontTitleColor: "text-[#008236]",
@@ -58,7 +142,7 @@ const HotalManagement = () => {
     },
     {
       title: "Avg Rating",
-      totalNumber: "4.3★",
+      totalNumber: "N/A", // Not available in stats API
       borderColor: "border-[#E2C4FF]",
       bgColor: "bg-gradient-to-bl from-[#FAF5FF] to-[#F3E8FF]",
       fontTitleColor: "text-[#7C3AED]",
@@ -195,110 +279,118 @@ const HotalManagement = () => {
     }
   ]
 
-  const data = [
-    {
-      hotel: "Hotel Taj Palace",
-      hotelMeta: "Hotel • 5★ • ID: HTL001",
-      city: "Mumbai",
-      state: "Maharashtra",
-      owner: "Vikram Hotels Pvt Ltd",
-      phone: "+91 98756 43210",
-      rooms: 45,
-      occupancy: 82,
-      status: "Active",
-      kyc: "Verified",
-      rating: 4.5,
-      reviews: 234,
-      features: ["Hourly", "goSafe"],
-      bookings: 456,
-      revenue: "₹25.0L Revenue"
-    },
-    {
-      hotel: "Grand Plaza Hotel",
-      hotelMeta: "Hotel • 4★ • ID: HTL002",
-      city: "Delhi",
-      state: "Delhi",
-      owner: "Luxury Stays Group",
-      phone: "+91 87654 32109",
-      rooms: 38,
-      occupancy: 75,
-      status: "Active",
-      kyc: "Verified",
-      rating: 4.2,
-      reviews: 187,
-      features: ["goSafe"],
-      bookings: 342,
-      revenue: "₹18.0L Revenue"
-    },
-    {
-      hotel: "Comfort Villa Retreat",
-      hotelMeta: "Villa • 4★ • ID: HTL003",
-      city: "Goa",
-      state: "Goa",
-      owner: "Comfort Inn Properties",
-      phone: "+91 76543 21098",
-      rooms: 12,
-      occupancy: 65,
-      status: "Pending",
-      kyc: "Unverified",
-      rating: 4.6,
-      reviews: 89,
-      features: [],
-      bookings: 125,
-      revenue: "₹9.5L Revenue"
-    },
-    {
-      hotel: "Seaside Heritage",
-      hotelMeta: "Resort • 5★ • ID: HTL004",
-      city: "Chennai",
-      state: "Tamil Nadu",
-      owner: "Bayfront Hospitality",
-      phone: "+91 90210 11122",
-      rooms: 60,
-      occupancy: 71,
-      status: "Active",
-      kyc: "Verified",
-      rating: 4.7,
-      reviews: 412,
-      features: ["goSafe"],
-      bookings: 512,
-      revenue: "₹32.4L Revenue"
-    },
-    {
-      hotel: "Royal Greens Inn",
-      hotelMeta: "Hotel • 3★ • ID: HTL005",
-      city: "Jaipur",
-      state: "Rajasthan",
-      owner: "Royal Stays",
-      phone: "+91 98111 22334",
-      rooms: 28,
-      occupancy: 58,
-      status: "Active",
-      kyc: "Verified",
-      rating: 4.1,
-      reviews: 143,
-      features: ["Hourly"],
-      bookings: 208,
-      revenue: "₹11.6L Revenue"
-    },
-    {
-      hotel: "Cityscape Suites",
-      hotelMeta: "Hotel • 4★ • ID: HTL006",
-      city: "Bengaluru",
-      state: "Karnataka",
-      owner: "UrbanNest Hotels",
-      phone: "+91 99001 22334",
-      rooms: 52,
-      occupancy: 69,
-      status: "Pending",
-      kyc: "Unverified",
-      rating: 4.3,
-      reviews: 201,
-      features: [],
-      bookings: 296,
-      revenue: "₹17.8L Revenue"
-    }
-  ]
+  // Static data - commented out, now using API data
+  // const staticData = [
+  //   {
+  //     hotel: "Hotel Taj Palace",
+  //     hotelMeta: "Hotel • 5★ • ID: HTL001",
+  //     city: "Mumbai",
+  //     state: "Maharashtra",
+  //     owner: "Vikram Hotels Pvt Ltd",
+  //     phone: "+91 98756 43210",
+  //     rooms: 45,
+  //     occupancy: 82,
+  //     status: "Active",
+  //     kyc: "Verified",
+  //     rating: 4.5,
+  //     reviews: 234,
+  //     features: ["Hourly", "goSafe"],
+  //     bookings: 456,
+  //     revenue: "₹25.0L Revenue"
+  //   },
+  //   {
+  //     hotel: "Grand Plaza Hotel",
+  //     hotelMeta: "Hotel • 4★ • ID: HTL002",
+  //     city: "Delhi",
+  //     state: "Delhi",
+  //     owner: "Luxury Stays Group",
+  //     phone: "+91 87654 32109",
+  //     rooms: 38,
+  //     occupancy: 75,
+  //     status: "Active",
+  //     kyc: "Verified",
+  //     rating: 4.2,
+  //     reviews: 187,
+  //     features: ["goSafe"],
+  //     bookings: 342,
+  //     revenue: "₹18.0L Revenue"
+  //   },
+  //   {
+  //     hotel: "Comfort Villa Retreat",
+  //     hotelMeta: "Villa • 4★ • ID: HTL003",
+  //     city: "Goa",
+  //     state: "Goa",
+  //     owner: "Comfort Inn Properties",
+  //     phone: "+91 76543 21098",
+  //     rooms: 12,
+  //     occupancy: 65,
+  //     status: "Pending",
+  //     kyc: "Unverified",
+  //     rating: 4.6,
+  //     reviews: 89,
+  //     features: [],
+  //     bookings: 125,
+  //     revenue: "₹9.5L Revenue"
+  //   },
+  //   {
+  //     hotel: "Seaside Heritage",
+  //     hotelMeta: "Resort • 5★ • ID: HTL004",
+  //     city: "Chennai",
+  //     state: "Tamil Nadu",
+  //     owner: "Bayfront Hospitality",
+  //     phone: "+91 90210 11122",
+  //     rooms: 60,
+  //     occupancy: 71,
+  //     status: "Active",
+  //     kyc: "Verified",
+  //     rating: 4.7,
+  //     reviews: 412,
+  //     features: ["goSafe"],
+  //     bookings: 512,
+  //     revenue: "₹32.4L Revenue"
+  //   },
+  //   {
+  //     hotel: "Royal Greens Inn",
+  //     hotelMeta: "Hotel • 3★ • ID: HTL005",
+  //     city: "Jaipur",
+  //     state: "Rajasthan",
+  //     owner: "Royal Stays",
+  //     phone: "+91 98111 22334",
+  //     rooms: 28,
+  //     occupancy: 58,
+  //     status: "Active",
+  //     kyc: "Verified",
+  //     rating: 4.1,
+  //     reviews: 143,
+  //     features: ["Hourly"],
+  //     bookings: 208,
+  //     revenue: "₹11.6L Revenue"
+  //   },
+  //   {
+  //     hotel: "Cityscape Suites",
+  //     hotelMeta: "Hotel • 4★ • ID: HTL006",
+  //     city: "Bengaluru",
+  //     state: "Karnataka",
+  //     owner: "UrbanNest Hotels",
+  //     phone: "+91 99001 22334",
+  //     rooms: 52,
+  //     occupancy: 69,
+  //     status: "Pending",
+  //     kyc: "Unverified",
+  //     rating: 4.3,
+  //     reviews: 201,
+  //     features: [],
+  //     bookings: 296,
+  //     revenue: "₹17.8L Revenue"
+  //   }
+  // ]
+
+  // Transform API response to match table structure
+  const data = propertiesData?.success ? transformPropertiesData(propertiesData.data) : [];
+
+  if (isLoading || statsLoading) return <Loader />;
+  if (error) return <div className="p-5">Error loading properties: {error.message}</div>;
+
   return(
     <>
       <div className="p-6">
@@ -329,8 +421,19 @@ const HotalManagement = () => {
       </div>
 
       <div >
-        <TableComponent columns={columns} data={data} onRowClick={() => setIsOpen(true)} />
-        <HotelManagementDrawer isOpen={isOpen} setIsOpen={setIsOpen} />
+        <TableComponent 
+          columns={columns} 
+          data={data} 
+          onRowClick={(row) => {
+            setSelectedPropertyId(row._id);
+            setIsOpen(true);
+          }} 
+        />
+        <HotelManagementDrawer 
+          isOpen={isOpen} 
+          setIsOpen={setIsOpen}
+          propertyId={selectedPropertyId}
+        />
       </div>
     </>
   )
