@@ -13,15 +13,19 @@ const InputComponent = ({
 }) => {
   const [inputValue, setInputValue] = useState();
   const debouncedOnChange = debounce((val) => {
-      handleValue(val)
+      if (handleValue && typeof handleValue === 'function') {
+        handleValue(val);
+      }
     }, 300)
 
   useEffect(() => {
-    debouncedOnChange(inputValue);
+    if (handleValue && typeof handleValue === 'function') {
+      debouncedOnChange(inputValue);
+    }
     return () => {
       debouncedOnChange.cancel();
     };
-  }, [inputValue, debouncedOnChange]);
+  }, [inputValue, debouncedOnChange, handleValue]);
 
   return (
     <div

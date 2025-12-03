@@ -19,3 +19,17 @@ export const fetchPropertiesStats = async () => {
   return data
 }
 
+export const uploadPropertyPhotos = async (propertyId, photos) => {
+  const { data } = await apiClient.post(`${PROPERTIES_LIST}/${propertyId}/media/photos`, {
+    photos
+  })
+  return data
+}
+
+export const uploadPropertyDocuments = async (propertyId, documents) => {
+  const { data } = await apiClient.post(`${PROPERTIES_LIST}/${propertyId}/documents`, {
+    documents
+  })
+  return data
+}
+

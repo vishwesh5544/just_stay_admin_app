@@ -7,7 +7,12 @@ import AmenitiesManagement from "./AmenitiesManagement";
 import { useProperty } from "../../HotelManagementDrawer";
 
 const HotelProfile = () => {
-  const { property } = useProperty() || {};
+  const context = useProperty();
+  const property = context?.property;
+
+  if (!context) {
+    return <div className="p-5 text-gray-500">No property context available</div>;
+  }
 
   if (!property) {
     return <div className="p-5 text-gray-500">Loading property details...</div>;

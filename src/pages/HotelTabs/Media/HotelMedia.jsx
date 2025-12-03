@@ -4,26 +4,123 @@ import { LuImage, LuClock, LuUpload } from "react-icons/lu";
 import { FiCheckCircle } from 'react-icons/fi';
 import HotelImages from "./HotelImages";
 import HotelVideo from "./HotelVideo";
-
+import { useProperty } from "../../HotelManagementDrawer";
+import { useRef, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { uploadFiles } from "../../../services/upload";
+import { uploadPropertyPhotos } from "../../../services/properties";
 
 const HotelMedia = ({ stats }) => {
+  const { property, propertyId } = useProperty() || {};
+  const fileInputRef = useRef(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Calculate stats from property photos
+  const photos = property?.photos || [];
+  const totalPhotos = photos.length;
+  const approvedPhotos = photos.filter(p => p.status === "Approved").length;
+  const pendingPhotos = photos.filter(p => p.status === "Pending").length;
+
   const data = {
-    total: 28,
-    approved: 24,
-    pending: 4,
+    total: totalPhotos,
+    approved: approvedPhotos,
+    pending: pendingPhotos,
     minRequired: 15,
     ...stats,
   };
+
+  // Upload mutation
+  const uploadMutation = useMutation({
+    mutationFn: async (files) => {
+      setIsUploading(true);
+      try {
+        // Step 1: Upload files to get URLs
+        const uploadResponse = await uploadFiles(files, "photo");
+        
+        if (!uploadResponse.urls || uploadResponse.urls.length === 0) {
+          throw new Error("No files were uploaded");
+        }
+
+        // Step 2: Prepare photos array with URLs
+        const photosData = uploadResponse.urls.map((item) => ({
+          name: "room",
+          status: "Pending",
+          url: item.url,
+        }));
+
+        // Step 3: Upload photos to property
+        await uploadPropertyPhotos(propertyId, photosData);
+
+        // Step 4: Refetch property data
+        await queryClient.invalidateQueries({ queryKey: ["property", propertyId] });
+        
+        return uploadResponse;
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    onSuccess: () => {
+      alert("Images uploaded successfully!");
+    },
+    onError: (error) => {
+      console.error("Upload error:", error);
+      alert(`Upload failed: ${error.message || "Unknown error"}`);
+    },
+  });
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    if (!propertyId) {
+      alert("Please select a property first");
+      return;
+    }
+
+    uploadMutation.mutate(files);
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleUploadClick = () => {
+    if (!propertyId) {
+      alert("Please select a property first");
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  // Get image URLs from property photos
+  const imageUrls = photos.map(p => p.url).filter(Boolean);
 
   return (
     <>
       <div>
         <div className="flex justify-between mb-3">
           <p className="text-[#101828] text-[14px] leading-7 font-semibold">Media Management</p>
-          <button className="bg-[#0F766E] text-white px-3 py-2 rounded-md text-[13px] leading-5 font-medium inline-flex items-center gap-2">
-            <LuUpload />
-            Upload Images
-          </button>
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handleFileSelect}
+              disabled={isUploading}
+            />
+            <button
+              onClick={handleUploadClick}
+              disabled={isUploading || !propertyId}
+              className="bg-[#0F766E] text-white px-3 py-2 rounded-md text-[13px] leading-5 font-medium inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <LuUpload />
+              {isUploading ? "Uploading..." : "Upload Images"}
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -63,7 +160,7 @@ const HotelMedia = ({ stats }) => {
         
         <div className="mt-6">
           <Container title={"Hotel Images"}>
-            <HotelImages images={[]} />
+            <HotelImages images={imageUrls} />
           </Container>
         </div>
 
